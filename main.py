@@ -1,4 +1,4 @@
-from midi_pitch import handle
+from midi_pitch import Handler
 import logging
 import sys
 import os
@@ -6,17 +6,17 @@ import os
 logging.basicConfig(stream=sys.stdout)
 logging.getLogger('midi_pitch').setLevel(logging.DEBUG)
 
-midi_path = 'files/original.mid'
-vocal_path = 'files/vocals.wav'
+midi_file = 'files/original.mid'
+vocal_file = 'files/vocals.wav'
 output_path = 'files/'
-os.mkdir(output_path)
+if not os.path.exists(output_path):
+    os.mkdir(output_path)
 
 
 def main():
-    handle(midi_path=midi_path, vocal_path=vocal_path, output_path=output_path,
-           trim_fix=True, trim_fix_method='match',
-           pitch_fix=True,
-           range_fix=True)
+    handler = Handler(midi_file=midi_file, vocal_file=vocal_file, output_path=output_path)
+    handler.compare(trim_fix=True)
+    handler.render()
 
 
 if __name__ == '__main__':

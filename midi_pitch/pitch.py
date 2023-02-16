@@ -7,8 +7,8 @@ from .midi import MIDI
 
 class Pitch:
 
-    def __init__(self, vocal_path: str, sr: float = 100, trim: float = 0):
-        self.snd = parselmouth.Sound(vocal_path)
+    def __init__(self, vocal_file: str, sr: float = 100, trim: float = 0):
+        self.snd = parselmouth.Sound(vocal_file)
         self.snd = parselmouth.Sound(self.snd, sampling_frequency=self.snd.get_sampling_frequency(),
                                      start_time=-trim).convert_to_mono()
         self.sr = sr

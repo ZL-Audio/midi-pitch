@@ -7,8 +7,8 @@ from collections import defaultdict
 
 class MIDI:
 
-    def __init__(self, midi_path: str):
-        self.mid = mido.MidiFile(midi_path)
+    def __init__(self, midi_file: str):
+        self.mid = mido.MidiFile(midi_file)
         self.messages = []
 
         for msg in self.mid:
