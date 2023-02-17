@@ -1,9 +1,10 @@
 import mido
 import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
-
 from collections import defaultdict
 
+from .parameters import EXTEND
 
 class MIDI:
 
@@ -33,21 +34,29 @@ class MIDI:
         return roll
 
     def plot(self, ax: plt.Axes, sr: float = 100):
+        n_colors = 256
+        color_array = plt.get_cmap('inferno')(range(n_colors))
+        color_array[:, -1] = np.linspace(0.0, 1.0, n_colors)
+        map_object = LinearSegmentedColormap.from_list(name='rainbow_alpha', colors=color_array)
+
         roll = self.get_roll(sr)
 
         left, right = self.get_note_range(roll)
 
-        roll = roll[left:right+1].astype('float')
+        roll = roll[left:right + 1].astype('float')
         ax.imshow(roll, extent=(0.0, int(self.mid.length * sr) / sr, left - 0.5, right + 0.5),
                   vmin=0.0, vmax=1.0,
-                  origin="lower", interpolation='nearest', aspect='auto', cmap='inferno')
+                  origin="lower", interpolation='nearest', aspect='auto', cmap=map_object)
 
     @staticmethod
-    def get_note_range(roll, extend=3):
+    def get_note_range(roll, extend=2):
         roll_max = np.nonzero(np.any(roll > 0, axis=1))[0]
         left, right = roll_max[0], roll_max[-1]
-        left = np.max([0, left - extend])
-        right = right + extend
+        # left = left - extend
+        # right = right + extend
+        # extra_extend = (-(right + 1 - left)) % 12
+        # left -= extra_extend // 2
+        # right += (extra_extend - extra_extend // 2)
         return left, right
 
     @staticmethod

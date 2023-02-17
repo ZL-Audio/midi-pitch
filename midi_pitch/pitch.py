@@ -16,6 +16,7 @@ class Pitch:
         self.time_ticks = pitch.xs()
         self.frequencies = pitch.selected_array['frequency']
         self.frequencies[self.frequencies == 0.0] = np.nan
+        self.frequencies = MIDI.freq_to_note(self.frequencies)
 
     def plot(self, ax):
-        ax.plot(self.time_ticks, MIDI.freq_to_note(self.frequencies), 'o', markersize=1.5)
+        ax.plot(self.time_ticks, self.frequencies, 'o', markersize=1.5)
