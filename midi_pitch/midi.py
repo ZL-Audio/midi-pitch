@@ -49,14 +49,11 @@ class MIDI:
                   origin="lower", interpolation='nearest', aspect='auto', cmap=map_object)
 
     @staticmethod
-    def get_note_range(roll, extend=2):
+    def get_note_range(roll):
         roll_max = np.nonzero(np.any(roll > 0, axis=1))[0]
         left, right = roll_max[0], roll_max[-1]
-        # left = left - extend
-        # right = right + extend
-        # extra_extend = (-(right + 1 - left)) % 12
-        # left -= extra_extend // 2
-        # right += (extra_extend - extra_extend // 2)
+        left = left - EXTEND
+        right = right + EXTEND
         return left, right
 
     @staticmethod

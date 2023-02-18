@@ -15,8 +15,8 @@ if not os.path.exists(output_path):
 
 def main():
     handler = Handler(midi_file=midi_file, vocal_file=vocal_file, output_path=output_path)
-    # handler.compare(trim_fix=True)
-    handler.render(frame_size=(480, 360))
+    handler.compare(trim_fix=True)
+    handler.render(frame_size=(1280, 720), piano=True)
 
 
 if __name__ == '__main__':

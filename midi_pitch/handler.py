@@ -1,13 +1,13 @@
 import cv2
 import subprocess
 import numpy as np
-from moviepy.editor import ImageClip, ColorClip, CompositeVideoClip, AudioFileClip
+from moviepy.editor import ImageClip, ColorClip, TextClip, CompositeVideoClip, AudioFileClip
 import matplotlib.pyplot as plt
 from .midi import MIDI
 from .pitch import Pitch
 from .fixer import PitchFixer, TrimFixer, RangeFixer
 from .parameters import CURSOR_WIDTH_R, CURSOR_POS_R, CURSOR_COLOR, CURSOR_ALPHA
-from .parameters import NOTE_CHART, PIANO_COLOR_0, PIANO_COLOR_1, PIANO_HEIGHT_R
+from .parameters import NOTE_CHART, PIANO_COLOR_0, PIANO_COLOR_1, PIANO_HEIGHT_R, TEXT_COLOR
 
 import logging
 
@@ -19,13 +19,13 @@ class Handler:
     vocal_file: str
     output_path: str
 
-    def __init__(self, midi_file: str, vocal_file: str, output_path):
+    def __init__(self, midi_file: str, vocal_file: str, output_path: str):
         logger.info('Analysis files.')
-        self.midi_file: str = midi_file
+        self.midi_file = midi_file
         self.mid = None if midi_file is None else MIDI(midi_file)
-        self.vocal_file: str = vocal_file
+        self.vocal_file  = vocal_file
         self.pitch = Pitch(vocal_file)
-        self.output_path: str = output_path
+        self.output_path = output_path
 
     def compare(self, sr: float = 100, trim: float = 0,
                 trim_fix: bool = False, trim_fix_method='match',
@@ -44,6 +44,7 @@ class Handler:
         :param dpi: DPI of the `pitch.png`
         :return:
         """
+        self.pitch = Pitch(self.vocal_file, sr=sr, trim=trim)
         if trim_fix and self.mid is not None:
             fixer = TrimFixer(self.mid, self.pitch)
             trim += fixer.auto_fix(method=trim_fix_method)
@@ -75,7 +76,7 @@ class Handler:
 
     def render(self, img_file: str = None, piano: bool = False,
                fps: int = 30, frame_size: tuple = (1280, 720),
-               bitrate='5000k', audio_bitrate='512k'):
+               bitrate='4096k', audio_bitrate='512k'):
         """
         render the comparison video
         :param img_file: path of the comparison image
@@ -125,6 +126,7 @@ class Handler:
 
     def _get_img_clip(self, img, frame_size, duration) -> ImageClip:
         image = ImageClip(self.output_path + 'pitch.png', duration=duration)
+        # image = ImageClip(img, duration=duration)
         speed = img.shape[1] / duration
         image = image.set_position(lambda t: (-t * speed + frame_size[0] * CURSOR_POS_R, 0))
         return image
@@ -137,14 +139,23 @@ class Handler:
         left, right = self.mid.get_note_range(self.mid.get_roll_at_time_tick(self.pitch.time_ticks))
         positions = np.linspace(frame_size[1], 0, right - left + 2).astype('int')
         heights = positions[:-1] - positions[1:]
+        font_size = int(np.ceil(np.max(heights * 0.5)))
         colors = np.linspace(PIANO_COLOR_0, PIANO_COLOR_1, 12).astype('int')
         for note, pos, height in zip(range(left, right + 1), positions[1:], heights):
             note_num = note % 12
             octave = (note // 12) - 2
+            note_name = NOTE_CHART[note_num] + str(octave)
+
             color = (colors[note_num], colors[note_num], colors[note_num])
             clip = ColorClip(size=(frame_size[0], height),
                              color=color, duration=duration)
             clip = clip.set_position(pos=(0, pos))
-
             clip_list.append(clip)
+
+            clip = TextClip(txt=note_name, size=(height, height), color=TEXT_COLOR,
+                            fontsize=font_size, method='caption', align='West')
+            clip = clip.set_duration(duration)
+            clip = clip.set_position(pos=(int(font_size * 0.5), pos))
+            clip_list.append(clip)
+
         return clip_list
