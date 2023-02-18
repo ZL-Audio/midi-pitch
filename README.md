@@ -20,6 +20,11 @@ handler.render()
 - 更改`main.py`中的`vocal_file`、`midi_file`为相应的文件位置
 - `python3 main.py`
 
+或者
+
+- 打开 [midi_pitch on Google Colab](https://colab.research.google.com/drive/1ylPzetjMGYI_Vz55YKPZkwEddHoVUWv9?usp=sharing) 无需安装即可使用。
+
+
 # 推荐步骤
 - 生成高质量的人声文件。如果您只有缩混后的声音片段，推荐使用 [Spleeter](https://github.com/deezer/spleeter) 或 [Demucs](https://github.com/facebookresearch/demucs) 分离人声。
 - 调用`Handler.compare`检查输出的对比图片`pitch.png`，如果需要调整参数

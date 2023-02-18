@@ -20,6 +20,10 @@ which will output three files in the `output_path`: `pitch.pdf`, `pitch.png`, an
 - Change `vocal_file`、`midi_file` in `main.py` to the path of the vocal/MIDI file
 - `python3 main.py`
 
+or
+
+- Open [midi_pitch on Google Colab](https://colab.research.google.com/drive/1ylPzetjMGYI_Vz55YKPZkwEddHoVUWv9?usp=sharing) to use it without installing anything.
+
 # Recommended Workflow
 - Generate high-quality vocal sound. If you come up with a piece of mixed music, I recommend using [Spleeter](https://github.com/deezer/spleeter) or [Demucs](https://github.com/facebookresearch/demucs) to separate the vocal sound
 - Call `Handler.compare` and check the comparison image `pitch.png`, change parameters if needed
