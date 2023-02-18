@@ -6,6 +6,7 @@ from collections import defaultdict
 
 from .parameters import EXTEND
 
+
 class MIDI:
 
     def __init__(self, midi_file: str):

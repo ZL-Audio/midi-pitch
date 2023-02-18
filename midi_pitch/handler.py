@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from .midi import MIDI
 from .pitch import Pitch
 from .fixer import PitchFixer, TrimFixer, RangeFixer
+from .parameters import PDF_NAME, IMAGE_NAME, VIDEO_NAME, TEMP_AUDIO_NAME
 from .parameters import CURSOR_WIDTH_R, CURSOR_POS_R, CURSOR_COLOR, CURSOR_ALPHA
 from .parameters import NOTE_CHART, PIANO_COLOR_0, PIANO_COLOR_1, PIANO_HEIGHT_R, TEXT_COLOR
 
@@ -23,7 +24,7 @@ class Handler:
         logger.info('Analysis files.')
         self.midi_file = midi_file
         self.mid = None if midi_file is None else MIDI(midi_file)
-        self.vocal_file  = vocal_file
+        self.vocal_file = vocal_file
         self.pitch = Pitch(vocal_file)
         self.output_path = output_path
 
@@ -40,8 +41,8 @@ class Handler:
         :param trim_fix_method: method used by trim-fixer
         :param pitch_fix: whether enable pitch-fixer to automatically fix pitch according to MIDI
         :param range_fix:whether enable range-fixer to automatically remove pitch out of range of MIDI
-        :param fig_size: figure size of the `pitch.pdf`
-        :param dpi: DPI of the `pitch.png`
+        :param fig_size: figure size
+        :param dpi: DPI
         :return:
         """
         self.pitch = Pitch(self.vocal_file, sr=sr, trim=trim)
@@ -68,15 +69,16 @@ class Handler:
         ax.axis('off')
         plt.tight_layout()
         logger.info('Save figure as PDF.')
-        fig.savefig(self.output_path + 'pitch.pdf', bbox_inches='tight', pad_inches=0, transparent=True)
+        fig.savefig(self.output_path + PDF_NAME, bbox_inches='tight', pad_inches=0, transparent=True)
         plt.close(fig)
         logger.info('Convert PDF to PNG.')
-        subprocess.run(['convert', '-density', str(dpi), self.output_path + 'pitch.pdf',
-                        '-quality', '100', self.output_path + 'pitch.png'])
+        subprocess.run(['convert', '-density', str(dpi), self.output_path + PDF_NAME,
+                        '-quality', '100', self.output_path + IMAGE_NAME])
 
     def render(self, img_file: str = None, piano: bool = False,
                fps: int = 30, frame_size: tuple = (1280, 720),
-               bitrate='4096k', audio_bitrate='512k'):
+               bitrate: str = '4096k', codec: str = 'libx265',
+               audio_bitrate: str = '512k', audio_codec: str = 'aac'):
         """
         render the comparison video
         :param img_file: path of the comparison image
@@ -84,18 +86,20 @@ class Handler:
         :param fps: fps of the video
         :param frame_size: resolution of the video
         :param bitrate: target bit-rate of the video
+        :param codec: codec of the video
         :param audio_bitrate: target audio-rate of the video
+        :param audio_codec: codec of the audio
         :return:
         """
         if img_file is None:
-            img_file = self.output_path + 'pitch.png'
+            img_file = self.output_path + IMAGE_NAME
         logger.info('Resize figure.')
         img = cv2.imread(img_file, cv2.IMREAD_UNCHANGED)
         img = cv2.resize(img, (int(frame_size[1] / img.shape[0] * img.shape[1]), frame_size[1]))
         if piano:
-            cv2.imwrite(self.output_path + 'pitch.png', img)
+            cv2.imwrite(self.output_path + IMAGE_NAME, img)
         else:
-            cv2.imwrite(self.output_path + 'pitch.png', img[:, :, :-1])
+            cv2.imwrite(self.output_path + IMAGE_NAME, img[:, :, :-1])
 
         duration = self.pitch.snd.xmax - self.pitch.snd.xmin
 
@@ -110,10 +114,10 @@ class Handler:
 
         composite = CompositeVideoClip(clip_list, size=frame_size)
         composite = composite.set_audio(audio)
-        composite.write_videofile(self.output_path + 'pitch.mp4',
-                                  temp_audiofile=self.output_path + 'temp-audio.m4a',
-                                  fps=fps, codec='libx264', bitrate=bitrate,
-                                  audio=True, audio_codec='aac', audio_bitrate=audio_bitrate,
+        composite.write_videofile(self.output_path + VIDEO_NAME,
+                                  temp_audiofile=self.output_path + TEMP_AUDIO_NAME,
+                                  fps=fps, codec=codec, bitrate=bitrate,
+                                  audio=True, audio_codec=audio_codec, audio_bitrate=audio_bitrate,
                                   logger='bar')
 
     def _get_cursor_clip(self, frame_size, duration) -> ColorClip:
@@ -125,8 +129,7 @@ class Handler:
         return cursor
 
     def _get_img_clip(self, img, frame_size, duration) -> ImageClip:
-        image = ImageClip(self.output_path + 'pitch.png', duration=duration)
-        # image = ImageClip(img, duration=duration)
+        image = ImageClip(self.output_path + IMAGE_NAME, duration=duration)
         speed = img.shape[1] / duration
         image = image.set_position(lambda t: (-t * speed + frame_size[0] * CURSOR_POS_R, 0))
         return image

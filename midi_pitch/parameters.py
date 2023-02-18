@@ -2,7 +2,12 @@
 EXTEND = 2
 
 # video
-CURSOR_WIDTH_R = 0.01
+PDF_NAME = 'pitch.pdf'
+IMAGE_NAME = 'pitch.png'
+VIDEO_NAME = 'pitch.mp4'
+TEMP_AUDIO_NAME = 'temp-audio.m4a'
+
+CURSOR_WIDTH_R = 0.008
 CURSOR_POS_R = 0.4
 CURSOR_COLOR = (220, 20, 60)
 CURSOR_ALPHA = 0.5
