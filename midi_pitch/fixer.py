@@ -57,7 +57,7 @@ class TrimFixer:
             _freq_mask[:len(freq_mask) - i] = freq_mask[i:]
             _mask = np.logical_and(_freq_mask, roll_mask)
             mask_sums.append(np.sum(_mask))
-        return np.argmax(mask_sums) / self.pitch.sr
+        return np.argmax(mask_sums) * self.pitch.time_step
 
     def _auto_fix_from_error(self):
         error_sums = []
@@ -77,7 +77,7 @@ class TrimFixer:
             error = _freq - roll
             error[~_mask] = 0
             error_sums.append(np.sum(np.abs(error)) / np.sum(_mask))
-        return np.argmin(error_sums) / self.pitch.sr
+        return np.argmin(error_sums) * self.pitch.time_step
 
 
 class RangeFixer:
@@ -98,7 +98,7 @@ class RangeFixer:
 
         roll_mask = np.sum(roll, axis=0) > 0
 
-        conv_mask = np.ones(int(self.pitch.sr))
+        conv_mask = np.ones(int(1 / self.pitch.time_step))
         roll_mask = np.convolve(roll_mask, conv_mask, mode='same')
         roll_mask = roll_mask > 0
 

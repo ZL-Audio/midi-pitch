@@ -20,22 +20,21 @@ class Handler:
     vocal_file: str
     output_path: str
 
-    def __init__(self, midi_file: str, vocal_file: str, output_path: str):
-        logger.info('Analysis files.')
+    def __init__(self, midi_file: str, vocal_file: str, output_path: str, sr: float = 22050):
         self.midi_file = midi_file
         self.mid = None if midi_file is None else MIDI(midi_file)
         self.vocal_file = vocal_file
-        self.pitch = Pitch(vocal_file)
+        self.pitch = Pitch(vocal_file, sr=sr)
         self.output_path = output_path
 
-    def compare(self, sr: float = 100, trim: float = 0,
+    def compare(self, frame_length: int = 2048, trim: float = 0,
                 trim_fix: bool = False, trim_fix_method='match',
                 pitch_fix: bool = True,
                 range_fix: bool = True,
                 fig_size: tuple = (200, 5), dpi=144):
         """
         output the comparison image
-        :param sr: sampling rate
+        :param frame_length: frame length of pyin algorithm
         :param trim: length of the trim at the start of the vocal sound file
         :param trim_fix: whether enable trim-fixer to automatically set the value of trim
         :param trim_fix_method: method used by trim-fixer
@@ -45,11 +44,12 @@ class Handler:
         :param dpi: DPI
         :return:
         """
-        self.pitch = Pitch(self.vocal_file, sr=sr, trim=trim)
+        self.pitch.analysis(frame_length=frame_length)
         if trim_fix and self.mid is not None:
             fixer = TrimFixer(self.mid, self.pitch)
             trim += fixer.auto_fix(method=trim_fix_method)
-            self.pitch = Pitch(self.vocal_file, sr=sr, trim=trim)
+            self.pitch = Pitch(self.vocal_file, trim=trim)
+            self.pitch.analysis()
 
         if pitch_fix and self.mid is not None:
             fixer = PitchFixer(self.mid, self.pitch)
@@ -61,9 +61,9 @@ class Handler:
 
         fig, ax = plt.subplots(figsize=fig_size)
         logger.info('Plot MIDI and Pitch.')
-        self.mid.plot(ax)
+        self.mid.plot(ax, sr=1024)
         self.pitch.plot(ax)
-        ax.set_xlim(self.pitch.snd.xmin, self.pitch.snd.xmax)
+        ax.set_xlim(-self.pitch.trim, self.pitch.duration)
         left, right = self.mid.get_note_range(self.mid.get_roll_at_time_tick(self.pitch.time_ticks))
         ax.set_ylim(left - 0.5, right + 0.5)
         ax.axis('off')
@@ -101,7 +101,7 @@ class Handler:
         else:
             cv2.imwrite(self.output_path + IMAGE_NAME, img[:, :, :-1])
 
-        duration = self.pitch.snd.xmax - self.pitch.snd.xmin
+        duration = self.pitch.trim + self.pitch.duration
 
         clip_list = []
 

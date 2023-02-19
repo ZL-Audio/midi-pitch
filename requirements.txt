@@ -1,0 +1,6 @@
+librosa>=0.8.1
+matplotlib>=3.2.2
+mido>=1.2.10
+moviepy>=1.0.3
+numpy>=1.21.6
+opencv_python>=4.6.0.66
