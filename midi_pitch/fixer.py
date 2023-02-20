@@ -103,5 +103,5 @@ class RangeFixer:
         roll_mask = roll_mask > 0
 
         num_remove += np.sum(np.logical_and(np.isfinite(self.pitch.frequencies), ~roll_mask))
-        logger.info('RemoveFixer: remove {} notes.'.format(num_remove))
+        logger.info('RangeFixer: remove {} notes.'.format(num_remove))
         self.pitch.frequencies[~roll_mask] = np.nan

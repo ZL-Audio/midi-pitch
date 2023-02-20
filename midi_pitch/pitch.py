@@ -19,14 +19,19 @@ class Pitch:
         self.time_ticks = np.array([])
         self.mask = np.array([])
 
-    def analysis(self, frame_length: int = 2048):
+    def analysis(self, frame_length: int = 2048, f0_algo='yin'):
         logger.info('Analysis vocal frequencies.')
-        self.frequencies, _, _ = librosa.pyin(self.snd, sr=self.sr, frame_length=frame_length,
-                                              fmin=librosa.note_to_hz('C2'),
-                                              fmax=librosa.note_to_hz('C7'),
-                                              fill_na=np.nan)
+        if f0_algo == 'yin':
+            self.frequencies = librosa.yin(y=self.snd, sr=self.sr, frame_length=frame_length,
+                                           fmin=librosa.note_to_hz('C2'),
+                                           fmax=librosa.note_to_hz('C7'))
+        else:
+            self.frequencies, _, _ = librosa.pyin(y=self.snd, sr=self.sr, frame_length=frame_length,
+                                                  fmin=librosa.note_to_hz('C2'),
+                                                  fmax=librosa.note_to_hz('C7'),
+                                                  fill_na=None)
         self.frequencies = MIDI.freq_to_note(self.frequencies)
-        self.time_ticks = librosa.times_like(self.frequencies)
+        self.time_ticks = librosa.times_like(self.frequencies, sr=self.sr, hop_length=frame_length // 4)
 
     @property
     def duration(self) -> float:

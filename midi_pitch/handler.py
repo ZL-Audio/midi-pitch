@@ -27,15 +27,15 @@ class Handler:
         self.pitch = Pitch(vocal_file, trim=trim, sr=sr)
         self.output_path = output_path
 
-    def compare(self, frame_length: int = 2048,
-                trim_fix: bool = False, trim_fix_method='match',
+    def compare(self, frame_length: int = 2048, f0_algo: str = 'yin',
+                trim_fix: bool = False, trim_fix_method='error',
                 pitch_fix: bool = True,
                 range_fix: bool = True,
                 fig_size: tuple = (200, 5), dpi=144):
         """
         output the comparison image
-        :param frame_length: frame length of pyin algorithm
-        :param trim: length of the trim at the start of the vocal sound file
+        :param frame_length: frame length of yin algorithm
+        :param f0_algo: algorithm of fundamental freq analysis
         :param trim_fix: whether enable trim-fixer to automatically set the value of trim
         :param trim_fix_method: method used by trim-fixer
         :param pitch_fix: whether enable pitch-fixer to automatically fix pitch according to MIDI
@@ -44,12 +44,14 @@ class Handler:
         :param dpi: DPI
         :return:
         """
-        self.pitch.analysis(frame_length=frame_length)
         if trim_fix and self.mid is not None:
+            self.pitch.analysis(frame_length=frame_length, f0_algo='yin')
             fixer = TrimFixer(self.mid, self.pitch)
             trim = self.pitch.trim + fixer.auto_fix(method=trim_fix_method)
             self.pitch = Pitch(self.vocal_file, trim=trim)
-            self.pitch.analysis()
+            self.pitch.analysis(frame_length=frame_length, f0_algo=f0_algo)
+        else:
+            self.pitch.analysis(frame_length=frame_length, f0_algo=f0_algo)
 
         if pitch_fix and self.mid is not None:
             fixer = PitchFixer(self.mid, self.pitch)
