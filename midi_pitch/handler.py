@@ -20,14 +20,14 @@ class Handler:
     vocal_file: str
     output_path: str
 
-    def __init__(self, midi_file: str, vocal_file: str, output_path: str, sr: float = 22050):
+    def __init__(self, midi_file: str, vocal_file: str, output_path: str, sr: float = 22050, trim: float = 0):
         self.midi_file = midi_file
         self.mid = None if midi_file is None else MIDI(midi_file)
         self.vocal_file = vocal_file
-        self.pitch = Pitch(vocal_file, sr=sr)
+        self.pitch = Pitch(vocal_file, trim=trim, sr=sr)
         self.output_path = output_path
 
-    def compare(self, frame_length: int = 2048, trim: float = 0,
+    def compare(self, frame_length: int = 2048,
                 trim_fix: bool = False, trim_fix_method='match',
                 pitch_fix: bool = True,
                 range_fix: bool = True,
@@ -47,7 +47,7 @@ class Handler:
         self.pitch.analysis(frame_length=frame_length)
         if trim_fix and self.mid is not None:
             fixer = TrimFixer(self.mid, self.pitch)
-            trim += fixer.auto_fix(method=trim_fix_method)
+            trim = self.pitch.trim + fixer.auto_fix(method=trim_fix_method)
             self.pitch = Pitch(self.vocal_file, trim=trim)
             self.pitch.analysis()
 
