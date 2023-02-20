@@ -52,7 +52,7 @@ class TrimFixer:
         roll = self.mid.get_roll_at_time_tick(self.pitch.time_ticks).astype('int')
         roll_mask = np.sum(roll, axis=0) > 0
         freq_mask = np.isfinite(self.pitch.frequencies)
-        for i in range(0, int(self.pitch.sr / 3)):
+        for i in range(0, int(1 / self.pitch.time_step)):
             _freq_mask = np.zeros_like(freq_mask)
             _freq_mask[:len(freq_mask) - i] = freq_mask[i:]
             _mask = np.logical_and(_freq_mask, roll_mask)
@@ -66,7 +66,7 @@ class TrimFixer:
         roll_mask = np.sum(roll, axis=0) > 0
         roll = (roll != 0).argmax(axis=0)
         freq_mask = np.isfinite(self.pitch.frequencies)
-        for i in range(0, int(self.pitch.sr / 3)):
+        for i in range(0, int(1 / self.pitch.time_step)):
             _freq_mask = np.zeros_like(freq_mask)
             _freq_mask[:len(freq_mask) - i] = freq_mask[i:]
             _mask = np.logical_and(_freq_mask, roll_mask)
