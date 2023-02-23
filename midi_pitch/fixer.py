@@ -49,35 +49,33 @@ class TrimFixer:
 
     def _auto_fix_from_match(self):
         mask_sums = []
-        roll = self.mid.get_roll_at_time_tick(self.pitch.time_ticks).astype('int')
-        roll_mask = np.sum(roll, axis=0) > 0
-        freq_mask = np.isfinite(self.pitch.frequencies)
-        for i in range(0, int(1 / self.pitch.time_step)):
-            _freq_mask = np.zeros_like(freq_mask)
-            _freq_mask[:len(freq_mask) - i] = freq_mask[i:]
-            _mask = np.logical_and(_freq_mask, roll_mask)
+        bound = int(1 / self.pitch.time_step)
+        for i in range(-bound, bound):
+            trim = i * self.pitch.time_step
+            time_ticks = self.pitch.time_ticks + trim
+            roll = self.mid.get_roll_at_time_tick(time_ticks)
+            roll_mask = np.sum(roll, axis=0) > 0
+            _mask = np.logical_and(roll_mask, np.isfinite(self.pitch.frequencies))
             mask_sums.append(np.sum(_mask))
-        return np.argmax(mask_sums) * self.pitch.time_step
+        trim = (np.argmax(mask_sums) - bound) * self.pitch.time_step
+        return trim
 
     def _auto_fix_from_error(self):
         error_sums = []
 
-        roll = self.mid.get_roll_at_time_tick(self.pitch.time_ticks).astype('int')
-        roll_mask = np.sum(roll, axis=0) > 0
-        roll = (roll != 0).argmax(axis=0)
-        freq_mask = np.isfinite(self.pitch.frequencies)
-        for i in range(0, int(1 / self.pitch.time_step)):
-            _freq_mask = np.zeros_like(freq_mask)
-            _freq_mask[:len(freq_mask) - i] = freq_mask[i:]
-            _mask = np.logical_and(_freq_mask, roll_mask)
-
-            _freq = np.zeros_like(self.pitch.frequencies)
-            _freq[:len(freq_mask) - i] = self.pitch.frequencies[i:]
-
-            error = _freq - roll
-            error[~_mask] = 0
-            error_sums.append(np.sum(np.abs(error)) / np.sum(_mask))
-        return np.argmin(error_sums) * self.pitch.time_step
+        bound = 2 * int(1 / self.pitch.time_step)
+        for i in range(-bound, bound):
+            trim = i * self.pitch.time_step
+            time_ticks = self.pitch.time_ticks + trim
+            roll = self.mid.get_roll_at_time_tick(time_ticks)
+            roll_mask = np.sum(roll, axis=0) > 0
+            roll = (roll != 0).argmax(axis=0)
+            _mask = np.logical_and(roll_mask, np.isfinite(self.pitch.frequencies))
+            _error = roll - self.pitch.frequencies
+            _error[~_mask] = 0
+            error_sums.append(np.sum(np.abs(_error)) / np.sum(_mask))
+        trim = (np.argmin(error_sums) - bound) * self.pitch.time_step
+        return trim
 
 
 class RangeFixer:
@@ -87,7 +85,7 @@ class RangeFixer:
         self.pitch = pitch
 
     def auto_fix(self):
-        roll = self.mid.get_roll_at_time_tick(self.pitch.time_ticks).astype('int')
+        roll = self.mid.roll
 
         left, right = MIDI.get_note_range(roll)
 

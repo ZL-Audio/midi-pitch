@@ -18,12 +18,17 @@ class MIDI:
         self.mid = mido.MidiFile(midi_file)
         self.messages = []
 
-        logger.info('Analysis MIDI messages.')
+        logger.info('Analyze MIDI messages.')
         for msg in self.mid:
             if not msg.is_meta:
                 self.messages.append(msg)
 
+        self.time_ticks = np.array([])
         self.roll = np.array([])
+
+    def analysis(self, time_ticks: np.array):
+        self.time_ticks = time_ticks
+        self.roll = self.get_roll_at_time_tick(time_ticks)
 
     def get_roll(self, sr: float = 100) -> np.array:
         time_ticks = np.linspace(0.0, int(self.mid.length * sr) / sr, int(self.mid.length * sr) + 1)
@@ -42,18 +47,19 @@ class MIDI:
             self.msg_change_keys(msg, keys)
         return roll
 
-    def plot(self, ax: plt.Axes, sr: float = 1024):
+    def plot(self, ax: plt.Axes):
         n_colors = 256
         color_array = plt.get_cmap('inferno')(range(n_colors))
         color_array[:, -1] = np.linspace(0.0, 1.0, n_colors)
         map_object = LinearSegmentedColormap.from_list(name='rainbow_alpha', colors=color_array)
 
-        roll = self.get_roll(sr)
+        roll = self.roll
 
         left, right = self.get_note_range(roll)
 
         roll = roll[left:right + 1].astype('float')
-        ax.imshow(roll, extent=(0.0, int(self.mid.length * sr) / sr, left - 0.5, right + 0.5),
+        ax.imshow(roll, extent=(0, 2 * self.time_ticks[-1] - self.time_ticks[-2] - self.time_ticks[0],
+                                left - 0.5, right + 0.5),
                   vmin=0.0, vmax=1.0,
                   origin="lower", interpolation='nearest', aspect='auto', cmap=map_object)
 

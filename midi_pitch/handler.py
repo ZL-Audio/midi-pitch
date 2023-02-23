@@ -44,14 +44,16 @@ class Handler:
         :param dpi: DPI
         :return:
         """
+        self.pitch.analysis(frame_length=frame_length, f0_algo=f0_algo)
+
+        trim = 0.0
         if trim_fix and self.mid is not None:
-            self.pitch.analysis(frame_length=frame_length, f0_algo='yin')
+            if f0_algo == 'yin' and trim_fix_method == 'match':
+                logger.error('Fix method match may not work with yin algorithm.')
             fixer = TrimFixer(self.mid, self.pitch)
-            trim = self.pitch.trim + fixer.auto_fix(method=trim_fix_method)
-            self.pitch = Pitch(self.vocal_file, trim=trim)
-            self.pitch.analysis(frame_length=frame_length, f0_algo=f0_algo)
-        else:
-            self.pitch.analysis(frame_length=frame_length, f0_algo=f0_algo)
+            trim = fixer.auto_fix(trim_fix_method)
+
+        self.mid.analysis(time_ticks=self.pitch.time_ticks + trim)
 
         if pitch_fix and self.mid is not None:
             fixer = PitchFixer(self.mid, self.pitch)
@@ -63,10 +65,10 @@ class Handler:
 
         fig, ax = plt.subplots(figsize=fig_size)
         logger.info('Plot MIDI and Pitch.')
-        self.mid.plot(ax, sr=1024)
+        self.mid.plot(ax)
         self.pitch.plot(ax)
         ax.set_xlim(-self.pitch.trim, self.pitch.duration)
-        left, right = self.mid.get_note_range(self.mid.get_roll_at_time_tick(self.pitch.time_ticks))
+        left, right = self.mid.get_note_range(self.mid.roll)
         ax.set_ylim(left - 0.5, right + 0.5)
         ax.axis('off')
         plt.tight_layout()
