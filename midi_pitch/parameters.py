@@ -1,6 +1,10 @@
 # midi
 EXTEND = 2
 
+# pitch
+LOUDNESS_HEIGHT_R = 0.25
+LOUDNESS_ALPHA = 0.25
+
 # video
 PDF_NAME = 'pitch.pdf'
 IMAGE_NAME = 'pitch.png'

@@ -67,10 +67,10 @@ class Handler:
 
         fig, ax = plt.subplots(figsize=fig_size)
         logger.info('Plot MIDI and Pitch.')
-        self.mid.plot(ax)
-        self.pitch.plot(ax, loudness=loudness)
-        ax.set_xlim(-self.pitch.trim, self.pitch.duration)
         left, right = self.mid.get_note_range(self.mid.roll)
+        self.mid.plot(ax, left=left, right=right)
+        self.pitch.plot(ax, loudness=loudness, left=left, right=right)
+        ax.set_xlim(-self.pitch.trim, self.pitch.duration)
         ax.set_ylim(left - 0.5, right + 0.5)
         ax.axis('off')
         plt.tight_layout()

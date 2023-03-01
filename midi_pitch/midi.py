@@ -47,15 +47,16 @@ class MIDI:
             self.msg_change_keys(msg, keys)
         return roll
 
-    def plot(self, ax: plt.Axes):
+    def plot(self, ax: plt.Axes, left=None, right=None):
         n_colors = 256
         color_array = plt.get_cmap('inferno')(range(n_colors))
         color_array[:, -1] = np.linspace(0.0, 1.0, n_colors)
         map_object = LinearSegmentedColormap.from_list(name='rainbow_alpha', colors=color_array)
 
-        roll = self.roll
+        roll = np.copy(self.roll)
 
-        left, right = self.get_note_range(roll)
+        if left is None or right is None:
+            left, right = self.get_note_range(roll)
 
         roll = roll[left:right + 1].astype('float')
         ax.imshow(roll, extent=(0, 2 * self.time_ticks[-1] - self.time_ticks[-2] - self.time_ticks[0],

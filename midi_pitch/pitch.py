@@ -3,6 +3,7 @@ import numpy as np
 
 import librosa
 from .midi import MIDI
+from .parameters import LOUDNESS_HEIGHT_R, LOUDNESS_ALPHA
 
 import logging
 
@@ -45,13 +46,16 @@ class Pitch:
     def time_step(self) -> float:
         return self.duration / self.frequencies.shape[0]
 
-    def plot(self, ax, loudness: bool = False):
+    def plot(self, ax, loudness: bool = False, left=None, right=None):
         ax.plot(self.time_ticks, self.frequencies, 'o', markersize=1.5)
         if loudness:
-            left, right = np.nanmin(self.frequencies), np.nanmax(self.frequencies)
+            if left is None or right is None:
+                left, right = np.nanmin(self.frequencies), np.nanmax(self.frequencies)
+            else:
+                left, right = left - 0.5, right + 0.5
             loudness = np.copy(self.loudness)
-            loudness = loudness / (np.max(loudness) - np.min(loudness)) * (right - left) * 0.25 + left
-            ax.fill_between(self.time_ticks, 0, loudness, alpha=0.25)
+            loudness = loudness / (np.max(loudness) - np.min(loudness)) * (right - left) * LOUDNESS_HEIGHT_R + left
+            ax.fill_between(self.time_ticks, 0, loudness, alpha=LOUDNESS_ALPHA)
 
     def _get_loudness(self, frame_length: int):
         # https://stackoverflow.com/questions/64913424/how-to-compute-loudness-from-audio-signal
@@ -61,6 +65,7 @@ class Pitch:
         spec_db = librosa.amplitude_to_db(spec_mag)
 
         freqs = librosa.fft_frequencies(sr=self.sr, n_fft=n_fft)
+        freqs = np.maximum(freqs, np.finfo(freqs.dtype).resolution)
         a_weights = librosa.A_weighting(freqs)
         a_weights = np.expand_dims(a_weights, axis=1)
 
