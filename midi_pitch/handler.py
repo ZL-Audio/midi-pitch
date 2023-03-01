@@ -31,20 +31,22 @@ class Handler:
                 trim_fix: bool = False, trim_fix_method='error',
                 pitch_fix: bool = True,
                 range_fix: bool = True,
+                loudness: bool = False,
                 fig_size: tuple = (200, 5), dpi=144):
         """
         output the comparison image
         :param frame_length: frame length of yin algorithm
-        :param f0_algo: algorithm of fundamental freq analysis
+        :param f0_algo: the algorithm of fundamental freq analysis
         :param trim_fix: whether enable trim-fixer to automatically set the value of trim
         :param trim_fix_method: method used by trim-fixer
         :param pitch_fix: whether enable pitch-fixer to automatically fix pitch according to MIDI
-        :param range_fix:whether enable range-fixer to automatically remove pitch out of range of MIDI
+        :param range_fix: whether enable range-fixer to automatically remove pitch out of range of MIDI
+        :param loudness: whether plot loudness
         :param fig_size: figure size
         :param dpi: DPI
         :return:
         """
-        self.pitch.analysis(frame_length=frame_length, f0_algo=f0_algo)
+        self.pitch.analysis(frame_length=frame_length, f0_algo=f0_algo, loudness=loudness)
 
         trim = 0.0
         if trim_fix and self.mid is not None:
@@ -66,7 +68,7 @@ class Handler:
         fig, ax = plt.subplots(figsize=fig_size)
         logger.info('Plot MIDI and Pitch.')
         self.mid.plot(ax)
-        self.pitch.plot(ax)
+        self.pitch.plot(ax, loudness=loudness)
         ax.set_xlim(-self.pitch.trim, self.pitch.duration)
         left, right = self.mid.get_note_range(self.mid.roll)
         ax.set_ylim(left - 0.5, right + 0.5)
