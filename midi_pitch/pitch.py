@@ -34,6 +34,7 @@ class Pitch:
         self.frequencies = MIDI.freq_to_note(self.frequencies)
         self.time_ticks = librosa.times_like(self.frequencies, sr=self.sr, hop_length=frame_length // 4)
         if loudness:
+            logger.info('Analyze vocal loudness.')
             self.loudness = self._get_loudness(frame_length=frame_length)
 
     @property
@@ -65,5 +66,5 @@ class Pitch:
 
         spec_dba = spec_db + a_weights
 
-        loudness = np.squeeze(librosa.feature.rms(S=librosa.db_to_amplitude(spec_dba)))
+        loudness = np.squeeze(librosa.feature.rms(S=librosa.db_to_amplitude(spec_dba), frame_length=frame_length))
         return loudness
