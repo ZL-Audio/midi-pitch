@@ -4,7 +4,7 @@
 `midi_pitch` 是一个制作人声音高线和 MIDI 对比视频的库。仅需四行就可以完成 :kissing_heart:
 
 ```python
-from handle import Handler
+from midi_pitch import Handler
 handler = Handler(midi_file='MIDI 文件', vocal_file='人声文件', output_path='输出目录')
 handler.compare()
 handler.render()

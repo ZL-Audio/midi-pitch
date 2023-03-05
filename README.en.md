@@ -4,7 +4,7 @@
 `midi_pitch` is a library for displaying the pitch (from a vocal sound) and the midi (from a midi file) as a video with four lines :kissing_heart:
 
 ```python
-from handle import Handler
+from midi_pitch import Handler
 handler = Handler(midi_file=midi_file, vocal_file=vocal_file, output_path=output_path)
 handler.compare()
 handler.render()
